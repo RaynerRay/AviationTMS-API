@@ -1,0 +1,698 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Contact {
+  id         String   @id @default(cuid())
+  fullName   String
+  email      String   @unique
+  phone      String
+  school     String   @unique
+  country    String
+  schoolPage String
+  students   Int
+  role       String
+  media      String
+  message    String
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@map("contacts")
+}
+
+model User {
+  id       String   @id @default(cuid())
+  email    String   @unique
+  password String
+  role     UserRole
+  name     String
+  phone    String?
+  image    String?
+
+  // School-related fields
+  schoolId   String?
+  schoolName String?
+
+  // One-to-One relationships
+  teacher Teacher?
+  student Student?
+  parent  Parent?
+
+  refreshTokens RefreshToken[]
+
+  // Timestamps
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model RefreshToken {
+  id        String   @id @default(uuid())
+  token     String   @unique
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  expiresAt DateTime
+  revoked   Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+// School model for flight training institutions
+model School {
+  id           String    @id @default(cuid())
+  name         String
+  slug         String    @unique
+  // primaryEmail String    @unique
+  logo         String?
+  aircraft     Aircraft[]
+  simulators   Simulator[]
+  flightSessions FlightSession[]
+
+  // Add relations
+  // userLogs               UserLog[] // One-to-many with students
+  // galleryImages          GalleryImage[] // One-to-many with students
+  // galleryImageCategories GalleryCategory[] // One-to-many with students
+  // events                 Event[]
+  // recentActivities       RecentActivity[]
+  // reminders              Reminder[]
+  students               Student[] // One-to-many with students
+  // sections               Section[] // One-to-many with sections
+  sectionCount           Int                @default(0)
+  siteEnabled            Boolean            @default(false)
+  siteCompletion         Int                @default(0)
+  // exams                  Exam[] // One-to-many with exams
+  // newsItems              NewsItem[] // One-to-many with news
+  // periods                Period[] // One-to-many with periods
+  classes                Class[] // One-to-many with classes
+  parents                Parent[] // One-to-many with parents
+  teachers               Teacher[] // One-to-many with parents
+  streams                Stream[] // One-to-many with streams
+  subjects               Subject[] // One-to-many with streams
+  attendanceLogs         AttendanceLog[] // One-to-many with streams
+  // schoolFees             SchoolFee[] // One-to-many with streams
+  // schoolFeesPayments     SchoolFeePayment[] // One-to-many with streams
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+}
+
+model Student {
+  id                 String             @id @default(cuid())
+  // One-to-One relationship with User
+  user               User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId             String             @unique
+  // schoolFeesPayments SchoolFeePayment[]
+  name               String
+  firstName          String
+  lastName           String
+  email              String             @unique
+  licenseType     String    // e.g., PPL, CPL, ATPL
+  pilotLicenseNumber String?
+  // flightHours     FlightHour[]
+  flightSessions FlightSession[]
+
+// Flight time totals
+  totalFlightHours     Float?   @default(0.0)
+  totalSimulatorHours  Float?   @default(0.0)
+  dayHours             Float?   @default(0.0)
+  nightHours           Float?   @default(0.0)
+  instrumentHours      Float?   @default(0.0)
+  singleEngineTime     Float?   @default(0.0)
+  multiEngineTime      Float?   @default(0.0)
+
+
+  licenseExpiryDate String?
+  medicalCertificateExpiry String?
+
+  parentId           String
+  classId            String
+  studentType        String?            @default("PS")
+  streamId           String
+  password           String
+  imageUrl           String?
+  phone              String?
+  parentName         String?
+  classTitle         String?
+  streamTitle        String?
+  state              String
+  idNumber                String             @unique // ID/Passport Number
+  nationality        String
+  gender             Gender
+  dob                String
+  documents       StudentDocument[]
+  rollNo             String             @unique
+  regNo              String             @unique // Registration Number
+  admissionDate      String
+  address            String
+  createdAt          DateTime           @default(now())
+  updatedAt          DateTime           @updatedAt
+  schoolId           String // Foreign key to School
+  schoolName         String
+  school             School             @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  // Relationships
+  parent             Parent             @relation(fields: [parentId], references: [id], onDelete: Cascade)
+  class              Class              @relation(fields: [classId], references: [id], onDelete: Cascade)
+  stream             Stream             @relation(fields: [streamId], references: [id], onDelete: Cascade)
+  guardian           GuardianInfo?      @relation("StudentToGuardianInfo")
+  // studentMarks       StudentMark[]
+  // attendance         Attendance[]
+
+  @@map("students")
+}
+
+model GuardianInfo {
+  id        String  @id @default(uuid())
+  // Link to student
+  studentId String  @unique
+  student   Student @relation("StudentToGuardianInfo", fields: [studentId], references: [id])
+
+  // Father's Details
+  fatherFullName      String
+  fatherOccupation    String
+  fatherPhoneNumber   String
+  fatherEmail         String
+  fatherOfficeAddress String
+  isPrimaryGuardian   Boolean @default(true)
+
+  // Mother's Details
+  motherFullName      String
+  motherOccupation    String
+  motherPhoneNumber   String
+  motherEmail         String
+  motherOfficeAddress String
+  isSecondaryGuardian Boolean @default(true)
+
+  // Emergency Contact
+  emergencyContactName     String
+  emergencyContactRelation String
+  emergencyContactNumber   String
+  isLocalGuardian          Boolean @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Teacher {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // One-to-One relationship with User
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId String @unique
+  //  employeeId     String     @unique // School-specific ID
+
+  // Personal Information
+  firstName      String
+  lastName       String
+  email          String     @unique
+  phone          String     @unique
+  whatsappNo     String?
+  dateOfBirth    DateTime?
+  gender         Gender
+  imageUrl       String? // URL for profile picture
+  NIN            String     @unique
+  // Authentication
+  password       String? // Hashed password
+  isActive       Boolean    @default(true)
+  lastLogin      DateTime?
+  contactMethod  String
+  // Professional Information
+  pilotLicenseNumber String?
+  licenseExpiryDate String?
+  medicalCertificateExpiry String?
+  
+  flightSessions FlightSession[]
+  // Flight time totals
+  totalFlightHours     Float?   @default(0.0)
+  totalSimulatorHours  Float?   @default(0.0)
+  dayHours             Float?   @default(0.0)
+  nightHours           Float?   @default(0.0)
+  instrumentHours      Float?   @default(0.0)
+  singleEngineTime     Float?   @default(0.0)
+  multiEngineTime      Float?   @default(0.0)
+  
+  dateOfJoining  DateTime
+  instructorRatings String[] //eg CF1 CF2
+
+  // Documents
+  documents       TeacherDocument[]
+  // Contact Information
+  address         String?
+  nationality     String
+
+  // Emergency Contact
+  emergencyContactName     String?
+  emergencyContactPhone    String?
+  emergencyContactRelation String?
+
+  // School Relationship
+  school     School @relation(fields: [schoolId], references: [id])
+  schoolId   String
+  schoolName String
+
+  // Attendance & Leave
+  // attendance TeacherAttendance[]
+  // leaves     TeacherLeave[]
+
+  @@map("teachers")
+}
+model Parent {
+  id String @id @default(cuid())
+
+  // One-to-One relationship with User
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId String @unique
+
+  title              String
+  firstName          String
+  lastName           String
+  relationship       String
+  email              String             @unique
+  gender             Gender
+  dob                DateTime
+  phone              String             @unique
+  nationality        String
+  whatsappNo          String?
+  imageUrl           String?
+  contactMethod      String
+  occupation         String
+  address            String
+  password           String
+  students           Student[]
+  schoolId           String // Foreign key to School
+  schoolName         String // Foreign key to School
+  school             School             @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  // schoolFeesPayments SchoolFeePayment[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("parents")
+}
+model AttendanceLog {
+  id          String       @id @default(cuid())
+  date        DateTime
+  startTime   String
+  endTime     String
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  // Relations
+  class       Class        @relation(fields: [classId], references: [id])
+  classId     String
+  className   String
+  streamName  String
+  stream      Stream       @relation(fields: [streamId], references: [id])
+  streamId    String
+  subject     Subject      @relation(fields: [subjectId], references: [id])
+  subjectId   String
+  subjectName String
+  school      School       @relation(fields: [schoolId], references: [id])
+  schoolId    String
+  // records     Attendance[]
+}
+
+model Class {
+  id    String @id @default(cuid())
+  title String
+  slug  String @unique
+
+  schoolId String // Foreign key to School
+  school   School @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+
+  // Add class teacher relationship
+
+  classTeacherId   String?         @unique // Optional foreign key to Teacher
+  classTeacherName String?
+  // classTeacher     Teacher?        @relation("ClassTeacher", fields: [classTeacherId], references: [id])
+  createdAt        DateTime        @default(now())
+  updatedAt        DateTime        @updatedAt
+  students         Student[]
+  // examClasses      ExamClass[]
+  // marksheets       Marksheet[]
+  // studentMarks     StudentMark[]
+  streams          Stream[] // One-to-many relationship with Stream
+  // schoolFees       SchoolFee[] // One-to-many relationship with Stream
+  attendanceLogs   AttendanceLog[]
+
+  @@map("classes")
+}
+model Stream {
+  id             String          @id @default(cuid())
+  title          String
+  slug           String          @unique
+  classId        String // Foreign key to Class
+  class          Class           @relation(fields: [classId], references: [id], onDelete: Cascade)
+  students       Student[]
+  schoolId       String // Foreign key to School
+  school         School          @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+  attendanceLogs AttendanceLog[]
+
+  @@map("streams")
+}
+
+
+model Subject {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Basic Information
+  name      String
+  slug      String  @unique
+  code      String
+  shortName String?
+
+  // Academic Details
+  category       SubjectCategory
+  type           SubjectType
+  passingMarks   Int?
+  totalMarks     Int?
+ 
+
+  // School Relationship
+  school      School   @relation(fields: [schoolId], references: [id])
+  schoolId    String   @default("cmbp222na0002vi7chsggbxud")
+  // Teacher Assignment for this subject in this class
+
+  // Additional Settings
+  isActive     Boolean @default(true)
+  isOptional   Boolean @default(false)
+  hasTheory    Boolean @default(true)
+  hasPractical Boolean @default(false)
+
+  // If practical
+  labRequired    Boolean         @default(false)
+  // Relationships
+  // examSubjects   ExamSubject[]
+  // studentMarks   StudentMark[]
+  // marksheets     Marksheet[]
+  attendanceLogs AttendanceLog[]
+
+  @@map("subjects")
+}
+
+//Flight Operations Management (Scheduling & Resources)
+model Aircraft {
+  id             String         @id @default(cuid())
+  tailNumber     String         @unique // e.g., N12345
+  make           String         // e.g., Cessna
+  model          String         // e.g., 172
+  aircraftType   AircraftType   // Enum: SINGLE_ENGINE, MULTI_ENGINE, JET, etc.
+  engineHours    Float          @default(0.0) // Total engine hours
+  airframeHours  Float          @default(0.0) // Total airframe hours
+  lastInspection DateTime?      // Date of the last inspection
+  nextInspection DateTime?      // Date of the next scheduled inspection
+  status         AircraftStatus @default(AVAILABLE) // Enum: AVAILABLE, MAINTENANCE, IN_FLIGHT, OUT_OF_SERVICE
+  location       String?        // Current airfield/hangar location
+  hourlyRate     Decimal        @default(0.0) @db.Decimal(10, 2) // Cost per hour for rental/training
+  schoolId       String
+  school         School         @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+
+  // Relations
+  flightSessions FlightSession[]
+  maintenanceLogs MaintenanceLog[]
+
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+
+  @@unique([tailNumber, schoolId]) // Tail numbers should be unique per school
+  @@map("aircraft")
+}
+
+enum AircraftType {
+  SINGLE_ENGINE_PISTON
+  MULTI_ENGINE_PISTON
+  TURBOPROP
+  JET
+  HELICOPTER
+  GLIDER
+  ULTRALIGHT
+}
+
+enum AircraftStatus {
+  AVAILABLE
+  IN_FLIGHT
+  MAINTENANCE
+  OUT_OF_SERVICE
+  RESERVED
+}
+
+model Simulator {
+  id               String             @id @default(cuid())
+  name             String             // e.g., "Cessna 172 Simulator"
+  model            String             // e.g., "Redbird TD2"
+  simulatorType    SimulatorType      // Enum: FTD, FFS, AATD, BATD
+  hourlyRate       Decimal            @default(0.0) @db.Decimal(10, 2) // Cost per hour
+  location         String?            // Where the simulator is located
+  lastMaintenance  DateTime?
+  nextMaintenance  DateTime?
+  status           SimulatorStatus    @default(AVAILABLE) // Enum: AVAILABLE, MAINTENANCE, IN_USE
+  schoolId         String
+  school           School             @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+
+  // Relations
+  flightSessions   FlightSession[] // Though often separate, some schools might log simulator sessions here
+
+  createdAt        DateTime           @default(now())
+  updatedAt        DateTime           @updatedAt
+
+  @@unique([name, schoolId]) // Simulator names should be unique per school
+  @@map("simulators")
+}
+
+enum SimulatorType {
+  BASIC_AVIATION_TRAINING_DEVICE // BATD
+  ADVANCED_AVIATION_TRAINING_DEVICE // AATD
+  FLIGHT_TRAINING_DEVICE // FTD (Level 1-7)
+  FULL_FLIGHT_SIMULATOR // FFS (Level A-D)
+  VIRTUAL_REALITY
+  FIXED_BASE
+}
+
+enum SimulatorStatus {
+  AVAILABLE
+  IN_USE
+  MAINTENANCE
+  OUT_OF_SERVICE
+}
+
+model FlightSession {
+  id                   String        @id @default(cuid())
+  sessionId            String        @unique @default(cuid())
+  sessionType          SessionType
+  date                 DateTime?     // Logbook Heading: Date
+  flightType           String?       // Logbook Heading: Type (e.g. "Training", "Checkride")
+
+  // Pilot/Flight Details
+  detailsOfFlight      String?       @db.Text  // Details of Flight & Remarks
+
+  ifrApproaches        Int           @default(0)
+  instrumentTime       Float         @default(0.0)
+  instrumentTimeSe     Float         @default(0.0)
+  instrumentTimeMe     Float         @default(0.0)
+
+  actualTime           Float         @default(0.0)
+
+  fstdTime             Float         @default(0.0)
+  fstdDual             Float         @default(0.0)
+  fstdPic              Float         @default(0.0)
+  fstdPicPractice      Float         @default(0.0)
+
+  singleEngineDay      Float         @default(0.0)
+  singleEngineNight    Float         @default(0.0)
+  multiEngineDay       Float         @default(0.0)
+  multiEngineNight     Float         @default(0.0)
+
+  other                Float         @default(0.0)
+
+  takeOffsDay          Int           @default(0)
+  takeOffsNight        Int           @default(0)
+  landingsDay          Int           @default(0)
+  landingsNight        Int           @default(0)
+
+  // [Rest of your fields...]
+  status               SessionStatus @default(SCHEDULED)
+  startTime            DateTime
+  endTime              DateTime
+  durationHours        Float?
+  teacherFeedback      String?       @db.Text
+  // studentFeedback      String?       @db.Text
+  verifiedByInstructor Boolean       @default(false)
+
+  aircraftId           String?
+  aircraft             Aircraft?     @relation(fields: [aircraftId], references: [id])
+  aircraftType         String?
+  registrationNumber   String?
+
+  departureAirport     String?
+  arrivalAirport       String?
+
+  totalFlightTime      Float?
+  dayHours             Float?
+  nightHours           Float?
+  instrumentHours      Float?
+  singleEngineTime     Float?
+  multiEngineTime      Float?
+
+  pilotRole            PilotRole?
+  crewOperation        CrewOperation?
+
+  studentId            String
+  student              Student       @relation(fields: [studentId], references: [id])
+  teacherId            String
+  teacher              Teacher       @relation(fields: [teacherId], references: [id])
+  simulatorId          String?
+  simulator            Simulator?    @relation(fields: [simulatorId], references: [id])
+  schoolId             String
+  school               School        @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+
+  actualFlightHours    Float?
+  actualSimulatorHours Float?
+  actualGroundHours    Float?
+
+  createdAt            DateTime      @default(now())
+  updatedAt            DateTime      @updatedAt
+
+  @@map("flight_sessions")
+}
+
+
+enum PilotRole {
+  PIC          // Pilot-in-command
+  COPILOT      // Co-pilot
+  DUAL // Dual (student with instructor)
+  PICUS 
+  COMMD_PRACTICE
+}
+
+enum CrewOperation {
+  SINGLE_PILOT
+  MULTI_PILOT
+}
+
+
+enum SessionType {
+  FLIGHT
+  SIMULATOR
+  TRAINING 
+  CHECKRIDE 
+  SOLO 
+  CROSS_COUNTRY
+}
+
+enum SessionStatus {
+  SCHEDULED
+  COMPLETED
+  CANCELED
+  RESCHEDULED
+  NO_SHOW
+  PENDING_REVIEW // For post-flight logging
+}
+
+
+model MaintenanceLog {
+  id                String          @id @default(cuid())
+  aircraftId        String
+  aircraft          Aircraft        @relation(fields: [aircraftId], references: [id], onDelete: Cascade)
+  logDate           DateTime
+  description       String          @db.Text
+  maintenanceType   MaintenanceType // Enum: SCHEDULED, UNSCHEDULED, INSPECTION, REPAIR
+  performedBy       String          // Name or ID of mechanic/technician
+  cost              Decimal?        @db.Decimal(10, 2)
+  partsReplaced     String[]
+  hoursAtMaintenance Float?          // Aircraft/Engine hours at the time of maintenance
+  nextDueDate       DateTime?       // For recurring maintenance
+  status            MaintenanceStatus @default(PENDING) // Enum: PENDING, IN_PROGRESS, COMPLETED, DEFERRED
+
+  createdAt         DateTime        @default(now())
+  updatedAt         DateTime        @updatedAt
+
+  @@map("maintenance_logs")
+}
+
+enum MaintenanceType {
+  SCHEDULED
+  UNSCHEDULED
+  INSPECTION
+  REPAIR
+  PREVENTATIVE
+}
+
+enum MaintenanceStatus {
+  PENDING
+  IN_PROGRESS
+  COMPLETED
+  DEFERRED
+}
+
+enum SubjectCategory {
+  CORE
+  ELECTIVE
+  ADDITIONAL
+  VOCATIONAL
+  LANGUAGE
+  EXTRA_CURRICULAR
+}
+
+enum SubjectType {
+  THEORY
+  PRACTICAL
+  BOTH
+}
+
+
+enum Gender {
+  MALE
+  FEMALE
+  OTHER
+}
+
+enum UserRole {
+  SUPER_ADMIN
+  ADMIN
+  TEACHER
+  STUDENT
+  PARENT
+  SECRETARY
+  MECHANIC
+}
+model TeacherDocument {
+  id        String  @id @default(cuid())
+  teacher   Teacher @relation(fields: [teacherId], references: [id])
+  teacherId String
+
+  type       DocumentType
+  title      String
+  url        String
+  uploadedAt DateTime     @default(now())
+
+  @@index([teacherId])
+  @@map("teacherDocuments")
+}
+model StudentDocument {
+  id        String  @id @default(cuid())
+  student   Student @relation(fields: [studentId], references: [id])
+  studentId String
+
+  type       DocumentType
+  title      String
+  url        String
+  uploadedAt DateTime     @default(now())
+
+  @@index([studentId])
+  @@map("studentDocuments")
+}
+enum DocumentType {
+  MEDICAL_LICENSE
+  PILOT_LICENSE
+  INSURANCE
+  ID_PROOF
+  QUALIFICATION
+  CONTRACT
+  OTHER
+}
