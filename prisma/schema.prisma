@@ -162,37 +162,7 @@ model Student {
   @@map("students")
 }
 
-model GuardianInfo {
-  id        String  @id @default(uuid())
-  // Link to student
-  studentId String  @unique
-  student   Student @relation("StudentToGuardianInfo", fields: [studentId], references: [id])
 
-  // Father's Details
-  fatherFullName      String
-  fatherOccupation    String
-  fatherPhoneNumber   String
-  fatherEmail         String
-  fatherOfficeAddress String
-  isPrimaryGuardian   Boolean @default(true)
-
-  // Mother's Details
-  motherFullName      String
-  motherOccupation    String
-  motherPhoneNumber   String
-  motherEmail         String
-  motherOfficeAddress String
-  isSecondaryGuardian Boolean @default(true)
-
-  // Emergency Contact
-  emergencyContactName     String
-  emergencyContactRelation String
-  emergencyContactNumber   String
-  isLocalGuardian          Boolean @default(false)
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-}
 
 model Teacher {
   id        String   @id @default(cuid())
@@ -291,6 +261,37 @@ model Parent {
   updatedAt DateTime @updatedAt
 
   @@map("parents")
+}
+model GuardianInfo {
+  id        String  @id @default(uuid())
+  // Link to student
+  studentId String  @unique
+  student   Student @relation("StudentToGuardianInfo", fields: [studentId], references: [id])
+
+  // Father's Details
+  fatherFullName      String
+  fatherOccupation    String
+  fatherPhoneNumber   String
+  fatherEmail         String
+  fatherOfficeAddress String
+  isPrimaryGuardian   Boolean @default(true)
+
+  // Mother's Details
+  motherFullName      String
+  motherOccupation    String
+  motherPhoneNumber   String
+  motherEmail         String
+  motherOfficeAddress String
+  isSecondaryGuardian Boolean @default(true)
+
+  // Emergency Contact
+  emergencyContactName     String
+  emergencyContactRelation String
+  emergencyContactNumber   String
+  isLocalGuardian          Boolean @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 model AttendanceLog {
   id          String       @id @default(cuid())
@@ -485,35 +486,35 @@ model FlightSession {
   id                   String        @id @default(cuid())
   sessionId            String        @unique @default(cuid())
   sessionType          SessionType
-  date                 DateTime?     // Logbook Heading: Date
+  date                 String     // Logbook Heading: Date
   flightType           String?       // Logbook Heading: Type (e.g. "Training", "Checkride")
 
   // Pilot/Flight Details
   detailsOfFlight      String?       @db.Text  // Details of Flight & Remarks
 
-  ifrApproaches        Int           @default(0)
-  instrumentTime       Float         @default(0.0)
-  instrumentTimeSe     Float         @default(0.0)
-  instrumentTimeMe     Float         @default(0.0)
+  ifrApproaches        Int?          @default(0)
+  instrumentTime       Float?         @default(0.0)
+  instrumentTimeSe     Float?         @default(0.0)
+  instrumentTimeMe     Float?         @default(0.0)
 
-  actualTime           Float         @default(0.0)
+  actualTime           Float?         @default(0.0)
 
-  fstdTime             Float         @default(0.0)
-  fstdDual             Float         @default(0.0)
-  fstdPic              Float         @default(0.0)
-  fstdPicPractice      Float         @default(0.0)
+  fstdTime             Float?         @default(0.0)
+  fstdDual             Float?         @default(0.0)
+  fstdPic              Float?         @default(0.0)
+  fstdPicPractice      Float?         @default(0.0)
 
-  singleEngineDay      Float         @default(0.0)
-  singleEngineNight    Float         @default(0.0)
-  multiEngineDay       Float         @default(0.0)
-  multiEngineNight     Float         @default(0.0)
+  singleEngineDay      Float?         @default(0.0)
+  singleEngineNight    Float?         @default(0.0)
+  multiEngineDay       Float?         @default(0.0)
+  multiEngineNight     Float?         @default(0.0)
 
-  other                Float         @default(0.0)
+  other                Float?         @default(0.0)
 
-  takeOffsDay          Int           @default(0)
-  takeOffsNight        Int           @default(0)
-  landingsDay          Int           @default(0)
-  landingsNight        Int           @default(0)
+  takeOffsDay          Int?           @default(0)
+  takeOffsNight        Int?           @default(0)
+  landingsDay          Int?           @default(0)
+  landingsNight        Int?           @default(0)
 
   // [Rest of your fields...]
   status               SessionStatus @default(SCHEDULED)
@@ -532,7 +533,6 @@ model FlightSession {
   departureAirport     String?
   arrivalAirport       String?
 
-  totalFlightTime      Float?
   dayHours             Float?
   nightHours           Float?
   instrumentHours      Float?
@@ -567,7 +567,7 @@ enum PilotRole {
   COPILOT      // Co-pilot
   DUAL // Dual (student with instructor)
   PICUS 
-  COMMD_PRACTICE
+  COMMAND_PRACTICE
 }
 
 enum CrewOperation {

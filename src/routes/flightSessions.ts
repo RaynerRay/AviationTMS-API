@@ -7,6 +7,7 @@ import {
   deleteFlightSession,
   getFlightSessionsByTeacherId,
   getFlightSessionsByStudentId,
+  batchUpdateFlightSessions,
 } from "@/controllers/flightsessions";
 import express from "express";
 
@@ -34,6 +35,12 @@ flightSessionsRouter.get(
 flightSessionsRouter.get(
   "/flight-sessions",
   getFlightSessions as (req: Request, res: Response) => void
+);
+// Batch updates
+flightSessionsRouter.put(
+  "/flight-sessions",
+   
+  batchUpdateFlightSessions as (req: Request, res: Response) => void
 );
 
 // GET flight session by ID

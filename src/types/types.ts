@@ -474,7 +474,7 @@ export enum PilotRole {
   DUAL = "DUAL",
   COPILOT = "COPILOT",
   PICUS = "PICUS",
-  COMMD_PRACTICE = "COMMD_PRACTICE",
+  COMMD_PRACTICE = "COMMAND_PRACTICE",
 }
   
   
@@ -553,7 +553,7 @@ export type CreateFlightSessionProps = {
   schoolId: string;
 
   // Optional logbook fields
-  date?: Date;
+  date?: string;
   flightType?: string;
   detailsOfFlight?: string;
 

@@ -13,6 +13,8 @@ import {
 } from "@/utils/tokens";
 import { UserRole } from "@prisma/client";
 
+
+
 export async function createUserService(data: UserCreateProps) {
   // Check if the user already exists
   const existingEmail = await db.user.findUnique({
@@ -71,6 +73,7 @@ export const loginUser = async (
     const existingUser = await db.user.findUnique({
       where: {
         email,
+        
       },
     });
     
