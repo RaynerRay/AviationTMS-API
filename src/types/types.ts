@@ -743,3 +743,78 @@ export type ContactProps = {
   media: string;
   message: string;
 };
+
+// snags
+export type SnagSeverity = 'LOW' | 'MEDIUM' | 'CRITICAL';
+export type SnagStatus = 'OPEN' | 'IN_PROGRESS' | 'RESOLVED';
+export type CreateSnag = {
+  reportedBy: string;
+  equipmentName: string;
+  description: string;
+  severity: SnagSeverity;
+  schoolId: string;
+  school: School;
+};
+
+export type CreateIncident = {
+  occurredAt: string;
+  reportedBy: string;
+  involvedPeople: string[];
+  equipmentName?: string;
+  flightSessionId?: string;
+  location: string;
+  type: IncidentType;
+  description: string;
+  schoolId: string;
+  school: School;
+};
+
+
+export type Snag = {
+  id: string;
+  reportedAt: string; // ISO date string
+  reportedBy: string;
+  equipmentName: string;
+  description: string;
+  severity: SnagSeverity;
+  status: SnagStatus;
+  assignedTo?: string | null;
+  resolvedAt?: string | null;
+  resolutionNote?: string | null;
+  schoolId: string;
+  school: School;
+};
+
+// incident report
+export type IncidentType =
+  | 'SAFETY'
+  | 'OPERATIONAL'
+  | 'MEDICAL'
+  | 'TECHNICAL'
+  | 'OTHER';
+
+  export type IncidentStatus =
+  | 'OPEN'
+  | 'INVESTIGATING'
+  | 'CLOSED';
+
+export type Incident = {
+  id: string;
+  occurredAt: string;
+  reportedAt: string;
+  reportedBy: string;
+  involvedPeople: string[];
+  equipmentName?: string | null;
+  flightSessionId?: string | null;
+  location: string;
+  type: IncidentType;
+  description: string;
+  status: IncidentStatus;
+  investigator?: string | null;
+  investigation?: string | null;
+  correctiveAction?: string | null;
+  closedAt?: string | null;
+  schoolId: string;
+  school: School;
+};
+

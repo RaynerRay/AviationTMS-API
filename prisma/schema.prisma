@@ -92,6 +92,8 @@ model School {
   streams                Stream[] // One-to-many with streams
   subjects               Subject[] // One-to-many with streams
   attendanceLogs         AttendanceLog[] // One-to-many with streams
+  snags         Snag[] // One-to-many with streams
+  incidents         Incident[] // One-to-many with streams
   // schoolFees             SchoolFee[] // One-to-many with streams
   // schoolFeesPayments     SchoolFeePayment[] // One-to-many with streams
   createdAt    DateTime  @default(now())
@@ -695,4 +697,67 @@ enum DocumentType {
   QUALIFICATION
   CONTRACT
   OTHER
+}
+
+// Snags
+model Snag {
+  id             String       @id @default(cuid())
+  reportedAt     DateTime     @default(now())
+  reportedBy     String       // Name or ID as string
+  equipmentName  String       // e.g., "Cessna 172", "Sim Room A"
+  description    String
+  severity       SnagSeverity
+  status         SnagStatus   @default(OPEN)
+  assignedTo     String?      // Optional technician name
+  resolvedAt     DateTime?
+  resolutionNote String?
+  schoolId String
+  school               School        @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+}
+
+enum SnagSeverity {
+  LOW
+  MEDIUM
+  CRITICAL
+}
+
+enum SnagStatus {
+  OPEN
+  IN_PROGRESS
+  RESOLVED
+}
+
+// Incident report
+model Incident {
+  id               String           @id @default(cuid())
+  occurredAt       DateTime
+  reportedAt       DateTime         @default(now())
+  reportedBy       String           // Name or ID as string
+  involvedPeople   String[]         // List of names or IDs
+  equipmentName    String?          // Optional: Aircraft or Sim name
+  flightSessionId  String?          // If tied to a session
+  location         String
+  type             IncidentType
+  description      String
+  status           IncidentStatus   @default(OPEN)
+  investigator     String?          // Optional
+  investigation    String?          
+  correctiveAction String?
+  closedAt         DateTime?
+   schoolId String
+  school               School        @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+}
+
+enum IncidentType {
+  SAFETY
+  OPERATIONAL
+  MEDICAL
+  TECHNICAL
+  OTHER
+}
+
+enum IncidentStatus {
+  OPEN
+  INVESTIGATING
+  CLOSED
 }
